@@ -9,6 +9,7 @@ Built with Python, OpenCV and NumPy only, with no machine learning involved.
 doc_scanner/
 ├── app.py                # Streamlit web frontend
 ├── main.py               # command-line entry point
+├── ui/                   # web UI styling (styles.css) and HTML components
 ├── requirements.txt
 ├── samples/              # put input photos here
 ├── output/               # scans are written here

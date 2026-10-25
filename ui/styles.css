@@ -1,0 +1,157 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
+
+/* Set on the root only, so Streamlit's icon font is left alone. */
+html, body, .stApp {
+    font-family: "Inter", system-ui, sans-serif;
+}
+
+.block-container {
+    padding-top: 3.5rem;
+    max-width: 1200px;
+}
+
+/* ---------- Hero ---------- */
+.hero {
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 55%, #db2777 100%);
+    border-radius: 20px;
+    padding: 2.2rem 2.4rem;
+    color: #fff;
+    margin-bottom: 1.6rem;
+    box-shadow: 0 12px 32px rgba(79, 70, 229, 0.25);
+}
+.hero h1 {
+    color: #fff;
+    font-size: 2.3rem;
+    font-weight: 800;
+    margin: 0 0 0.4rem 0;
+    padding: 0;
+    letter-spacing: -0.02em;
+}
+.hero p {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 1.05rem;
+    margin: 0 0 1.1rem 0;
+    max-width: 640px;
+}
+.chip {
+    display: inline-block;
+    background: rgba(255, 255, 255, 0.18);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #fff;
+    border-radius: 999px;
+    padding: 0.25rem 0.8rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+    margin: 0 0.4rem 0.4rem 0;
+}
+
+/* ---------- Feature cards (empty state) ---------- */
+.feature-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+    margin: 1.2rem 0 1.6rem 0;
+}
+.feature {
+    background: #fff;
+    border: 1px solid #e4e7f2;
+    border-radius: 16px;
+    padding: 1.2rem 1.3rem;
+}
+.feature .icon { font-size: 1.6rem; }
+.feature h4 { margin: 0.5rem 0 0.25rem 0; font-size: 1rem; font-weight: 700; }
+.feature p { margin: 0; color: #5b6078; font-size: 0.88rem; line-height: 1.45; }
+
+/* ---------- Pipeline strip ---------- */
+.pipeline {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: 0.4rem;
+}
+.pipeline .stage {
+    background: #eef0ff;
+    color: #3730a3;
+    border-radius: 10px;
+    padding: 0.4rem 0.75rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+}
+.pipeline .arrow { color: #a5a9c4; font-weight: 700; }
+
+.section-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin: 0.4rem 0 0.2rem 0;
+}
+
+/* ---------- Page card header ---------- */
+.page-head {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    flex-wrap: wrap;
+}
+.page-num {
+    background: #4f46e5;
+    color: #fff;
+    border-radius: 10px;
+    width: 2rem;
+    height: 2rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+}
+.page-name { font-weight: 700; font-size: 1.05rem; word-break: break-all; }
+.badge {
+    border-radius: 999px;
+    padding: 0.2rem 0.7rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+}
+.badge.ok { background: #dcfce7; color: #166534; }
+.badge.warn { background: #fef3c7; color: #92400e; }
+.img-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #5b6078;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.3rem;
+}
+
+/* ---------- Step cards ---------- */
+.step-title { font-weight: 700; font-size: 0.9rem; margin-top: 0.3rem; }
+.step-title span {
+    background: #eef0ff;
+    color: #4f46e5;
+    border-radius: 6px;
+    padding: 0 0.4rem;
+    margin-right: 0.35rem;
+}
+.step-detail { color: #5b6078; font-size: 0.8rem; line-height: 1.35; }
+
+/* ---------- Streamlit widget tweaks ---------- */
+[data-testid="stImage"] img { border-radius: 10px; }
+[data-testid="stMetric"] {
+    background: #fff;
+    border: 1px solid #e4e7f2;
+    border-radius: 14px;
+    padding: 0.8rem 1rem;
+}
+[data-testid="stSidebar"] { border-right: 1px solid #e4e7f2; }
+.stDownloadButton button, .stButton button { border-radius: 10px; font-weight: 600; }
+
+.footer {
+    text-align: center;
+    color: #8b90a8;
+    font-size: 0.82rem;
+    margin-top: 2rem;
+}
+
+@media (max-width: 640px) {
+    .hero { padding: 1.5rem 1.3rem; }
+    .hero h1 { font-size: 1.7rem; }
+}

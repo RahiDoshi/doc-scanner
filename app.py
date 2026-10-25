@@ -4,42 +4,71 @@ Run locally with:
     streamlit run app.py
 """
 
+import time
 from pathlib import Path
 
 import streamlit as st
 
-from scanner import DocumentScanner
+from scanner import DocumentScanner, ScanResult
 from scanner.enhance import ScanMode
 from scanner.utils import decode_image, encode_png, images_to_pdf, rotate, to_rgb
+from ui import components as ui
 
 SAMPLES_DIR = Path(__file__).parent / "samples" / "internet"
 
-MODE_LABELS = {
-    ScanMode.BW: "Black & White",
-    ScanMode.GRAY: "Grayscale",
-    ScanMode.COLOR: "Magic Colour",
-    ScanMode.ORIGINAL: "Original",
+MODES = {
+    ScanMode.BW: ("Black & White", "Crisp photocopy look, best for text"),
+    ScanMode.GRAY: ("Grayscale", "Even contrast, keeps shading"),
+    ScanMode.COLOR: ("Magic Colour", "Brightened and sharpened colours"),
+    ScanMode.ORIGINAL: ("Original", "Flattened page, no filter"),
 }
 
 STEP_INFO = {
-    "1_original": ("Original", "Input photo, resized for fast processing"),
-    "2_grayscale": ("Grayscale", "Colour → single intensity channel"),
-    "3_blurred": ("Gaussian Blur", "Smoothing filter removes noise"),
-    "4_edges": ("Canny Edges", "Edge detection + morphological closing"),
+    "1_original": ("Original", "Input photo, resized for speed"),
+    "2_grayscale": ("Grayscale", "Single intensity channel"),
+    "3_blurred": ("Gaussian Blur", "Smoothing removes noise"),
+    "4_edges": ("Canny Edges", "Edges + morphological closing"),
     "5_detected": ("Page Detected", "Largest 4-corner contour"),
     "6_warped": ("Perspective Warp", "Top-down view of the page"),
-    "7_scanned": ("Final Scan", "Thresholding / histogram equalization"),
+    "7_scanned": ("Final Scan", "Threshold / histogram equalization"),
 }
 
 
 @st.cache_data(show_spinner=False, max_entries=32)
-def scan_bytes(data: bytes, mode: ScanMode):
-    return DocumentScanner(mode=mode).scan(decode_image(data))
+def scan_bytes(data: bytes, mode: ScanMode) -> tuple[ScanResult, float]:
+    """Scan an image and return the result with the time it took in seconds."""
+    start = time.perf_counter()
+    result = DocumentScanner(mode=mode).scan(decode_image(data))
+    return result, time.perf_counter() - start
+
+
+def sidebar() -> tuple[ScanMode, bool]:
+    with st.sidebar:
+        st.markdown("### ⚙️ Settings")
+        mode = st.radio(
+            "Scan style", list(MODES),
+            format_func=lambda m: MODES[m][0],
+            captions=[detail for _, detail in MODES.values()],
+        )
+        show_steps = st.toggle("Show processing steps", value=True)
+
+        st.divider()
+        st.markdown("### 📚 Syllabus coverage")
+        st.markdown(
+            "- Smoothing filters\n"
+            "- Edge detection\n"
+            "- Morphological operations\n"
+            "- Object detection (contours)\n"
+            "- Image transformation\n"
+            "- Thresholding\n"
+            "- Histogram modelling"
+        )
+    return mode, show_steps
 
 
 def collect_inputs() -> list[tuple[str, bytes]]:
     """Return (name, image bytes) pairs from whichever input tab is used."""
-    upload_tab, camera_tab, sample_tab = st.tabs(["📁 Upload", "📷 Camera", "🖼️ Try a sample"])
+    upload_tab, camera_tab, sample_tab = st.tabs(["📁 Upload", "📷 Camera", "🖼️ Samples"])
 
     with upload_tab:
         files = st.file_uploader(
@@ -53,7 +82,10 @@ def collect_inputs() -> list[tuple[str, bytes]]:
         photo = st.camera_input("Take a photo of a document") if use_camera else None
     with sample_tab:
         samples = sorted(SAMPLES_DIR.glob("*")) if SAMPLES_DIR.exists() else []
-        chosen = st.multiselect("Pick sample photos", samples, format_func=lambda p: p.stem)
+        chosen = st.multiselect(
+            "Pick one or more sample photos", samples,
+            format_func=lambda p: p.stem.replace("_", " ").title(),
+        )
 
     inputs = [(f.name, f.getvalue()) for f in files or []]
     if photo is not None:
@@ -62,87 +94,93 @@ def collect_inputs() -> list[tuple[str, bytes]]:
     return inputs
 
 
-def show_page(index: int, name: str, data: bytes, mode: ScanMode, show_steps: bool):
-    """Render one scanned page and return the final (rotated) scan."""
-    result = scan_bytes(data, mode)
+def show_steps_grid(result: ScanResult) -> None:
+    with st.expander("🔍 How this page was processed", expanded=False):
+        columns = st.columns(4)
+        for i, (key, image) in enumerate(result.steps.items()):
+            title, detail = STEP_INFO[key]
+            with columns[i % 4]:
+                st.image(to_rgb(image), width="stretch")
+                ui.step_caption(i + 1, title, detail)
 
-    header, rotate_col = st.columns([3, 1])
-    header.subheader(f"Page {index + 1} · {name}")
-    degrees = rotate_col.selectbox(
-        "Rotate", [0, 90, 180, 270], key=f"rotate_{index}_{name}",
-        format_func=lambda d: f"{d}°",
-    )
-    scanned = rotate(result.scanned, degrees)
 
-    if result.document_found:
-        st.success("Document outline detected", icon="✅")
-    else:
-        st.warning("No page outline found, so the whole image was used. "
-                   "Try a darker background with all four corners visible.", icon="⚠️")
+def show_page(index: int, name: str, result: ScanResult, show_steps: bool):
+    """Render one scanned page as a card and return the final (rotated) scan."""
+    with st.container(border=True):
+        head, rotate_col, download_col = st.columns([5, 1.3, 1.5], vertical_alignment="bottom")
+        with head:
+            ui.page_header(index + 1, name, result.document_found)
+        degrees = rotate_col.selectbox(
+            "Rotate", [0, 90, 180, 270], key=f"rotate_{index}_{name}",
+            format_func=lambda d: f"↻ {d}°",
+        )
+        scanned = rotate(result.scanned, degrees)
+        download_col.download_button(
+            "⬇️ PNG", encode_png(scanned),
+            file_name=f"{Path(name).stem}_scanned.png", mime="image/png",
+            key=f"png_{index}_{name}", width="stretch",
+        )
 
-    before, after = st.columns(2)
-    before.image(to_rgb(result.steps["5_detected"]), caption="Detected outline",
-                 width="stretch")
-    after.image(to_rgb(scanned), caption="Scanned result", width="stretch")
+        if not result.document_found:
+            st.caption("No page outline was found, so the whole photo was used. "
+                       "For best results, use a darker background and keep all four corners in view.")
 
-    st.download_button(
-        "⬇️ Download PNG", encode_png(scanned),
-        file_name=f"{Path(name).stem}_scanned.png", mime="image/png",
-        key=f"png_{index}_{name}",
-    )
+        before, after = st.columns(2, gap="medium")
+        with before:
+            ui.label("Detected outline")
+            st.image(to_rgb(result.steps["5_detected"]), width="stretch")
+        with after:
+            ui.label("Scanned result")
+            st.image(to_rgb(scanned), width="stretch")
 
-    if show_steps:
-        with st.expander("🔍 Processing steps", expanded=True):
-            columns = st.columns(4)
-            for i, (key, image) in enumerate(result.steps.items()):
-                title, detail = STEP_INFO[key]
-                with columns[i % 4]:
-                    st.image(to_rgb(image), width="stretch")
-                    st.markdown(f"**{i + 1}. {title}**  \n{detail}")
-
-    st.divider()
+        if show_steps:
+            show_steps_grid(result)
     return scanned
 
 
 def main():
     st.set_page_config(page_title="Document Scanner", page_icon="📄", layout="wide")
+    ui.inject_styles()
+    mode, show_steps = sidebar()
 
-    with st.sidebar:
-        st.header("⚙️ Settings")
-        mode = st.radio("Scan mode", list(ScanMode), format_func=MODE_LABELS.get)
-        show_steps = st.toggle("Show processing steps", value=True)
-        st.divider()
-        st.markdown(
-            "**How it works**\n\n"
-            "1. Grayscale + Gaussian blur\n"
-            "2. Canny edge detection\n"
-            "3. Morphological closing\n"
-            "4. Contour detection (4 corners)\n"
-            "5. Perspective transform\n"
-            "6. Adaptive threshold / CLAHE"
-        )
-
-    st.title("📄 Document Scanner")
-    st.caption("Turn a photo of a page into a clean, flat scan. Built with OpenCV and NumPy.")
-
+    ui.hero()
     inputs = collect_inputs()
     if not inputs:
-        st.info("Upload a photo, use your camera, or pick a sample to get started.")
+        ui.empty_state()
+        ui.footer()
         return
 
-    scans = []
     with st.spinner("Scanning…"):
-        for i, (name, data) in enumerate(inputs):
+        scanned_inputs = []
+        for name, data in inputs:
             try:
-                scans.append(show_page(i, name, data, mode, show_steps))
+                scanned_inputs.append((name, *scan_bytes(data, mode)))
             except ValueError:
                 st.error(f"Could not read {name}, so it was skipped.")
+    if not scanned_inputs:
+        return
 
-    if scans:
-        st.download_button(
-            f"📑 Download all {len(scans)} page(s) as PDF", images_to_pdf(scans),
-            file_name="scanned_document.pdf", mime="application/pdf", type="primary",
+    summary = st.container()
+    scans = [
+        show_page(i, name, result, show_steps)
+        for i, (name, result, _) in enumerate(scanned_inputs)
+    ]
+
+    # Filled after the pages so the PDF includes each page's chosen rotation.
+    with summary:
+        detected = sum(result.document_found for _, result, _ in scanned_inputs)
+        total_time = sum(seconds for *_, seconds in scanned_inputs)
+        pages_col, found_col, time_col, pdf_col = st.columns(4, vertical_alignment="center")
+        pages_col.metric("Pages", len(scans))
+        found_col.metric("Pages detected", f"{detected}/{len(scans)}")
+        time_col.metric("Processing time", f"{total_time:.2f}s")
+        pdf_col.download_button(
+            "📑 Download PDF", images_to_pdf(scans),
+            file_name="scanned_document.pdf", mime="application/pdf",
+            type="primary", width="stretch",
         )
+
+    ui.footer()
 
 
 if __name__ == "__main__":
