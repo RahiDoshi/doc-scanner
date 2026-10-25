@@ -36,7 +36,10 @@ class DocumentScanner:
             corners = full_image_corners(small.shape)
 
         outlined = small.copy()
-        cv2.drawContours(outlined, [corners.astype(int)], -1, (0, 255, 0), 2)
+        # White line with a black core stays visible on both light and dark backgrounds.
+        outline = [corners.astype(int)]
+        cv2.drawContours(outlined, outline, -1, (255, 255, 255), 5)
+        cv2.drawContours(outlined, outline, -1, (0, 0, 0), 2)
 
         # Warp the full-resolution image for maximum output quality.
         warped = four_point_warp(image, corners * ratio)

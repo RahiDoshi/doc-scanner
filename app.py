@@ -44,7 +44,7 @@ def scan_bytes(data: bytes, mode: ScanMode) -> tuple[ScanResult, float]:
 
 def sidebar() -> tuple[ScanMode, bool]:
     with st.sidebar:
-        st.markdown("### ⚙️ Settings")
+        st.markdown("### Settings")
         mode = st.radio(
             "Scan style", list(MODES),
             format_func=lambda m: MODES[m][0],
@@ -53,7 +53,7 @@ def sidebar() -> tuple[ScanMode, bool]:
         show_steps = st.toggle("Show processing steps", value=True)
 
         st.divider()
-        st.markdown("### 📚 Syllabus coverage")
+        st.markdown("### Syllabus coverage")
         st.markdown(
             "- Smoothing filters\n"
             "- Edge detection\n"
@@ -68,7 +68,8 @@ def sidebar() -> tuple[ScanMode, bool]:
 
 def collect_inputs() -> list[tuple[str, bytes]]:
     """Return (name, image bytes) pairs from whichever input tab is used."""
-    upload_tab, camera_tab, sample_tab = st.tabs(["📁 Upload", "📷 Camera", "🖼️ Samples"])
+    ui.panel_title("Add your document", "Upload photos, use your camera, or try a sample.")
+    upload_tab, camera_tab, sample_tab = st.tabs(["Upload", "Camera", "Samples"])
 
     with upload_tab:
         files = st.file_uploader(
@@ -95,7 +96,7 @@ def collect_inputs() -> list[tuple[str, bytes]]:
 
 
 def show_steps_grid(result: ScanResult) -> None:
-    with st.expander("🔍 How this page was processed", expanded=False):
+    with st.expander("How this page was processed", expanded=False):
         columns = st.columns(4)
         for i, (key, image) in enumerate(result.steps.items()):
             title, detail = STEP_INFO[key]
@@ -107,16 +108,15 @@ def show_steps_grid(result: ScanResult) -> None:
 def show_page(index: int, name: str, result: ScanResult, show_steps: bool):
     """Render one scanned page as a card and return the final (rotated) scan."""
     with st.container(border=True):
-        head, rotate_col, download_col = st.columns([5, 1.3, 1.5], vertical_alignment="bottom")
-        with head:
-            ui.page_header(index + 1, name, result.document_found)
+        ui.page_header(index + 1, name, result.document_found)
+        rotate_col, download_col = st.columns(2, vertical_alignment="bottom")
         degrees = rotate_col.selectbox(
             "Rotate", [0, 90, 180, 270], key=f"rotate_{index}_{name}",
-            format_func=lambda d: f"↻ {d}°",
+            format_func=lambda d: f"{d}°", label_visibility="collapsed",
         )
         scanned = rotate(result.scanned, degrees)
         download_col.download_button(
-            "⬇️ PNG", encode_png(scanned),
+            "PNG", encode_png(scanned), icon=":material/download:",
             file_name=f"{Path(name).stem}_scanned.png", mime="image/png",
             key=f"png_{index}_{name}", width="stretch",
         )
@@ -139,12 +139,17 @@ def show_page(index: int, name: str, result: ScanResult, show_steps: bool):
 
 
 def main():
-    st.set_page_config(page_title="Document Scanner", page_icon="📄", layout="wide")
+    st.set_page_config(page_title="Document Scanner", page_icon=":material/document_scanner:",
+                       layout="wide")
     ui.inject_styles()
     mode, show_steps = sidebar()
 
-    ui.hero()
-    inputs = collect_inputs()
+    hero_col, input_col = st.columns([1.15, 1], gap="large")
+    with hero_col:
+        ui.hero()
+    with input_col:
+        inputs = collect_inputs()
+
     if not inputs:
         ui.empty_state()
         ui.footer()
@@ -161,10 +166,17 @@ def main():
         return
 
     summary = st.container()
-    scans = [
-        show_page(i, name, result, show_steps)
-        for i, (name, result, _) in enumerate(scanned_inputs)
-    ]
+
+    # Two pages per row so wide screens are filled; a single page uses the full width.
+    per_row = 1 if len(scanned_inputs) == 1 else 2
+    scans = []
+    for row_start in range(0, len(scanned_inputs), per_row):
+        columns = st.columns(per_row, gap="medium")
+        for column, (i, (name, result, _)) in zip(
+            columns, enumerate(scanned_inputs[row_start:row_start + per_row], start=row_start)
+        ):
+            with column:
+                scans.append(show_page(i, name, result, show_steps))
 
     # Filled after the pages so the PDF includes each page's chosen rotation.
     with summary:
@@ -175,7 +187,7 @@ def main():
         found_col.metric("Pages detected", f"{detected}/{len(scans)}")
         time_col.metric("Processing time", f"{total_time:.2f}s")
         pdf_col.download_button(
-            "📑 Download PDF", images_to_pdf(scans),
+            "Download PDF", images_to_pdf(scans), icon=":material/picture_as_pdf:",
             file_name="scanned_document.pdf", mime="application/pdf",
             type="primary", width="stretch",
         )

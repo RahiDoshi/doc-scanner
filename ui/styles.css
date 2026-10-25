@@ -1,157 +1,208 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500&display=swap");
+
+:root {
+    --ink: #0a0a0a;
+    --paper: #ffffff;
+    --muted: #6b6b6b;
+    --line: #e2e2e2;
+    --soft: #f4f4f4;
+}
 
 /* Set on the root only, so Streamlit's icon font is left alone. */
 html, body, .stApp {
     font-family: "Inter", system-ui, sans-serif;
 }
 
+/* Use the full width of the screen. */
 .block-container {
-    padding-top: 3.5rem;
-    max-width: 1200px;
+    max-width: 100%;
+    padding: 3.2rem 2.5rem 2rem 2.5rem;
 }
 
-/* ---------- Hero ---------- */
+/* ---------- Hero (black panel) ---------- */
 .hero {
-    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 55%, #db2777 100%);
-    border-radius: 20px;
-    padding: 2.2rem 2.4rem;
-    color: #fff;
-    margin-bottom: 1.6rem;
-    box-shadow: 0 12px 32px rgba(79, 70, 229, 0.25);
+    background: var(--ink);
+    color: var(--paper);
+    border-radius: 18px;
+    padding: 2.4rem 2.4rem 2rem 2.4rem;
+    min-height: 260px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+.hero .eyebrow {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #a3a3a3;
 }
 .hero h1 {
-    color: #fff;
-    font-size: 2.3rem;
-    font-weight: 800;
-    margin: 0 0 0.4rem 0;
+    color: var(--paper);
+    font-size: clamp(2.2rem, 4vw, 3.6rem);
+    font-weight: 900;
+    line-height: 1;
+    letter-spacing: -0.04em;
+    margin: 0.6rem 0 0.8rem 0;
     padding: 0;
-    letter-spacing: -0.02em;
 }
 .hero p {
-    color: rgba(255, 255, 255, 0.9);
-    font-size: 1.05rem;
-    margin: 0 0 1.1rem 0;
-    max-width: 640px;
+    color: #cfcfcf;
+    font-size: 1.02rem;
+    line-height: 1.55;
+    margin: 0 0 1.2rem 0;
+    max-width: 560px;
 }
 .chip {
     display: inline-block;
-    background: rgba(255, 255, 255, 0.18);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    color: #fff;
+    border: 1px solid #4a4a4a;
+    color: var(--paper);
     border-radius: 999px;
     padding: 0.25rem 0.8rem;
-    font-size: 0.8rem;
+    font-size: 0.78rem;
     font-weight: 500;
     margin: 0 0.4rem 0.4rem 0;
 }
 
+/* ---------- Input panel ---------- */
+.panel-title {
+    font-size: 1.25rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin: 0 0 0.1rem 0;
+}
+.panel-sub { color: var(--muted); font-size: 0.9rem; margin-bottom: 0.4rem; }
+
 /* ---------- Feature cards (empty state) ---------- */
 .feature-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    grid-template-columns: repeat(4, 1fr);
     gap: 1rem;
-    margin: 1.2rem 0 1.6rem 0;
+    margin: 1.5rem 0 1.2rem 0;
 }
 .feature {
-    background: #fff;
-    border: 1px solid #e4e7f2;
+    border: 1.5px solid var(--ink);
     border-radius: 16px;
-    padding: 1.2rem 1.3rem;
+    padding: 1.3rem 1.4rem;
+    background: var(--paper);
 }
-.feature .icon { font-size: 1.6rem; }
-.feature h4 { margin: 0.5rem 0 0.25rem 0; font-size: 1rem; font-weight: 700; }
-.feature p { margin: 0; color: #5b6078; font-size: 0.88rem; line-height: 1.45; }
+.feature .num {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.78rem;
+    color: var(--muted);
+}
+.feature h4 { margin: 0.5rem 0 0.3rem 0; font-size: 1.05rem; font-weight: 800; }
+.feature p { margin: 0; color: var(--muted); font-size: 0.88rem; line-height: 1.5; }
 
 /* ---------- Pipeline strip ---------- */
+.pipeline-wrap {
+    background: var(--soft);
+    border-radius: 16px;
+    padding: 1.2rem 1.4rem;
+}
+.section-title {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.7rem;
+}
 .pipeline {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 0.4rem;
-    margin-top: 0.4rem;
+    gap: 0.5rem;
 }
 .pipeline .stage {
-    background: #eef0ff;
-    color: #3730a3;
+    background: var(--ink);
+    color: var(--paper);
     border-radius: 10px;
-    padding: 0.4rem 0.75rem;
-    font-size: 0.82rem;
+    padding: 0.5rem 0.9rem;
+    font-size: 0.85rem;
     font-weight: 600;
 }
-.pipeline .arrow { color: #a5a9c4; font-weight: 700; }
-
-.section-title {
-    font-size: 1.15rem;
-    font-weight: 700;
-    margin: 0.4rem 0 0.2rem 0;
-}
+.pipeline .arrow { color: var(--ink); font-weight: 800; }
 
 /* ---------- Page card header ---------- */
 .page-head {
+    margin-bottom: 0.2rem;
     display: flex;
     align-items: center;
     gap: 0.7rem;
     flex-wrap: wrap;
 }
 .page-num {
-    background: #4f46e5;
-    color: #fff;
+    background: var(--ink);
+    color: var(--paper);
     border-radius: 10px;
     width: 2rem;
     height: 2rem;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-weight: 700;
+    font-weight: 800;
 }
-.page-name { font-weight: 700; font-size: 1.05rem; word-break: break-all; }
+.page-name { font-weight: 700; font-size: 1.02rem; word-break: break-all; }
 .badge {
     border-radius: 999px;
     padding: 0.2rem 0.7rem;
-    font-size: 0.78rem;
+    font-size: 0.75rem;
     font-weight: 600;
 }
-.badge.ok { background: #dcfce7; color: #166534; }
-.badge.warn { background: #fef3c7; color: #92400e; }
+.badge.ok { background: var(--ink); color: var(--paper); }
+.badge.warn { background: var(--paper); color: var(--ink); border: 1.5px dashed var(--ink); }
 .img-label {
-    font-size: 0.8rem;
-    font-weight: 600;
-    color: #5b6078;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.72rem;
+    color: var(--muted);
     text-transform: uppercase;
-    letter-spacing: 0.05em;
-    margin-bottom: 0.3rem;
+    letter-spacing: 0.12em;
+    margin-bottom: 0.35rem;
 }
 
 /* ---------- Step cards ---------- */
-.step-title { font-weight: 700; font-size: 0.9rem; margin-top: 0.3rem; }
+.step-title { font-weight: 700; font-size: 0.85rem; margin-top: 0.3rem; }
 .step-title span {
-    background: #eef0ff;
-    color: #4f46e5;
-    border-radius: 6px;
+    background: var(--ink);
+    color: var(--paper);
+    border-radius: 5px;
     padding: 0 0.4rem;
     margin-right: 0.35rem;
 }
-.step-detail { color: #5b6078; font-size: 0.8rem; line-height: 1.35; }
+.step-detail { color: var(--muted); font-size: 0.76rem; line-height: 1.35; }
 
 /* ---------- Streamlit widget tweaks ---------- */
-[data-testid="stImage"] img { border-radius: 10px; }
-[data-testid="stMetric"] {
-    background: #fff;
-    border: 1px solid #e4e7f2;
-    border-radius: 14px;
-    padding: 0.8rem 1rem;
+[data-testid="stImage"] img {
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    max-height: 70vh;
+    object-fit: contain;
 }
-[data-testid="stSidebar"] { border-right: 1px solid #e4e7f2; }
+[data-testid="stMetric"] {
+    background: var(--soft);
+    border-radius: 14px;
+    padding: 0.8rem 1.1rem;
+}
+[data-testid="stMetricValue"] { font-weight: 800; }
+[data-testid="stVerticalBlockBorderWrapper"] { border-color: var(--line); border-radius: 16px; }
+[data-testid="stSidebar"] { border-right: 1px solid var(--line); background: var(--paper); }
 .stDownloadButton button, .stButton button { border-radius: 10px; font-weight: 600; }
 
 .footer {
     text-align: center;
-    color: #8b90a8;
-    font-size: 0.82rem;
+    color: var(--muted);
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
     margin-top: 2rem;
 }
 
+@media (max-width: 1000px) {
+    .feature-grid { grid-template-columns: repeat(2, 1fr); }
+}
 @media (max-width: 640px) {
-    .hero { padding: 1.5rem 1.3rem; }
-    .hero h1 { font-size: 1.7rem; }
+    .block-container { padding: 3rem 1rem 1.5rem 1rem; }
+    .hero { padding: 1.6rem 1.4rem; min-height: 0; }
+    .feature-grid { grid-template-columns: 1fr; }
 }
